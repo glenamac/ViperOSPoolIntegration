@@ -1,3 +1,4 @@
+
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{hyperref}
@@ -61,7 +62,7 @@ There  are two master nodes serving as redundant central-managers in an active-p
 submit node, and nine execute points. In the event that the submit node has a failure, an execute
 point may be transitioned to serve as a new submit node due the statelessness Viper’s management
 and provisioning system.
-Viper is configured to advertise 4.5 GB of RAM per core to the Open Science Pool (OSPool), allowing it to efficiently integrate with workloads of varying shapes.  All Viper hosts have globally routable IPv6 addresses through CAAREN. 
+Viper is configured to advertise 4.5 GB of RAM per core to the Open Science Pool, allowing it to efficiently integrate with workloads of varying shapes.  All Viper hosts have globally routable IPv6 addresses through CAAREN. 
 
 \section{About CAAREN}
 
@@ -161,6 +162,9 @@ Some applications do not support IPv6,  including those that bind to literal,  o
   \item \textbf{Implementation:} On Viper, \texttt{CLATD} runs on each node and provides its own instance of \texttt{TAYGA}, an out-of-kernel stateless NAT64 daemon. \texttt{CLATD} (and \texttt{TAYGA}) are integrated at boot through systemd units within overlays. 
 \end{itemize}
 
+Note, in a dual-stack environment (e.g., while transitioning from legacy to IPv6) it is important that HTCondor not attempt to bind to the virtual \texttt{clat} interface for intra-daemon communication. It is typically sufficient to specify the appropriate interface by setting \texttt{NETWORK\_INTERFACE} and redirecting all other IPv4-bound traffic to the \texttt{clat} interface.  
+
+
 Together, DNS64, NAT64, and CLAT allow IPv6-only nodes to maintain operational capability with legacy IP hosts and applications. 
 
 \section{Results}
@@ -258,4 +262,5 @@ Anderson, T. \textit{clatd – A 464XLAT CLAT implementation for Linux}. GitHub 
 % Remaining sections to be added: NAT64, DNS64, CLAT, Monitoring challenges, Conclusions, etc.
 
 \end{document}
+
 
