@@ -36,11 +36,13 @@ In 2025,  The George Washington University~\cite{gwu}, in partnership with the C
 \href{https://ce-dashboard.ospool.osg-htc.org/overview.html?host=gwu-viper-ce1&r=week}{successfully} 
 contributed a single-stack IPv6 HTCondor~\cite{htcondor} cluster, Viper, to the Open Science Pool (OSPool)~\cite{ospool}, a nationally distributed computing platform for data-intensive research. This demonstrates a path forward for institutions preparing for an IPv6-only future, reinforcing GW’s leadership in research cyberinfrastructure and open science.
 
-There is some legitimate concern that integrating IPv6-only computational resources into the OSPool may have adverse effects on effective job-throughput. These concerns break down into two broad categories, 
+There is some legitimate concern that integrating IPv6-only computational resources into the OSPool may have adverse effects on effective job throughput and be damaging to the Open Science Pool. These concerns break down into two broad categories of challenges, 
 \begin{enumerate}[itemsep=1pt]
 \item Interoperability with OSPool and HTCondor 
-\item Interoperability with researcher jobs which are far less predictable
+\item Interoperability with researcher jobs 
 \end{enumerate}
+
+A solution is required that bridges the gap for both of these sets of concerns for there to be any possibility of moving beyond legacy addressing. Because the way the OSPool CE's match requests with resources is well-understood~\cite{ospooldocs}, the first set of challenges may be addressed systematically. However, the second set, owing to researcher workflows being much less predictable, requires a broadly-scoped solution that handles a variety of scenarios. 
 
 \section{System Overview}
 
@@ -61,7 +63,7 @@ Scratch Storage & 1 TB SSD \\
 There  are two master nodes serving as redundant central-managers in an active-passive relation, one
 submit node, and nine execute points. Because Viper uses Warewulf's stateless provisioning, nodes can be quickly repurposed or recovered after failure.
 
-Viper is configured to advertise 4.5 GB of RAM per core to the Open Science Pool, allowing it to efficiently integrate with workloads of varying shapes.  All Viper hosts have globally routable IPv6 addresses through CAAREN. 
+Viper is configured to advertise 4.5 GB of RAM per core to the Open Science Pool, allowing it to efficiently integrate with workloads of varying shapes.  
 
 \section{About CAAREN}
 
@@ -93,6 +95,7 @@ These services position CAAREN as a leader for data-intensive science, advanced 
 \begin{itemize}[leftmargin=*,label=–,itemsep=1pt]
  \item \textbf{CAAREN Connectivity:} Global IPv6 /64 allocations routed through CAAREN. All Condor daemon communication (Collector, Negotiator, StartD, Schedd) operates exclusively over native IPv6.
  \item \textbf{Firewalls:} Host-based firewall rules allowing limited IPv6 originating from both GW and OSG and unrestricted outbound. No other firewalls or access control lists.
+ \item All Viper hosts have globally routable IPv6 addresses through CAAREN. 
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -104,8 +107,7 @@ These services position CAAREN as a leader for data-intensive science, advanced 
 
 
 \section{HTCondor Configuration and IPv6 Deployment}
-
-All HTCondor components are configured to operate over IPv6 only. The following key values were set on each node via overlay.
+Network configuration is thoroughly discussed in the HTCondor documentation~\cite{htcondor-ipv6}. All HTCondor components are configured to operate only over IPv6. The following key values were set on each node via overlay.
 
 \subsection*{Access Point and Central-Manager IPs}
 Note that the addresses below are reserved for documentation and used for illustrative purposes; they will need to be updated for site-specific networks.  
@@ -122,12 +124,13 @@ Submit/Access Point & \texttt{2001:db8:0:1::100} \\
 \end{center}
 
 \subsection*{/etc/condor/config.d/10\_ipv6.conf}
-\begin{lstlisting}
+\begin{lstlisting}[caption={IPV6 Override Settings}, label={lst:ipv6-conf}]
 # submit/access point
 UID_DOMAIN = 2001:db8:0:1::100
 
 # central-manager
 CONDOR_HOST = 2001:db8:0:1::200
+COLLECTOR_HOST = [2001:db8:0:1::200]:9618
 
 NETWORK_INTERFACE = eno1
 ENABLE_IPV6 = true
@@ -140,18 +143,15 @@ ALLOW_NEGOTIATOR = 2001:db8:0:1::/64
 ALLOW_ADVERTISE_STARTD = 2001:db8:0:1::/64
 \end{lstlisting}
 
-\subsection*{/etc/condor/config.d/20\_role.conf}
-\begin{lstlisting}
-# central-manager
-COLLECTOR_HOST = [2001:db8:0:1::200]:9618
-\end{lstlisting}
+By default, HTCondor sets \texttt{BIND\_ALL\_INTERFACES = true}. In a multi-interface environment, each with network routes, it may be necessary to be more selective. As each execute point on Viper has two interfaces (one being the virtual \texttt{clat} interface), routing tables are used to sidestep this issue. All IPv6 traffic between Condor daemons is bound to the appropriate interface.  
+
 
 \section{DNS64, NAT64, and the Role of CLAT}
 
 Viper operates in an IPv6-only environment so some measures are required to enable connectivity to legacy IPv4 hosts and applications. This is achieved through a combination of DNS64, NAT64, and CLAT, an implementation of 464XLAT~\cite{464xlat}.
 
 DNS64 and NAT64 are required for accessing upstream OSG services, Git repositories, and software mirrors that remain IPv4-only.
-\subsection*{DNS64 and NAT64}
+\subsection{DNS64 and NAT64}
 
 \begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
   \item \textbf{DNS64:} When an IPv6-only host makes a DNS request for an A record (IPv4), a DNS64-enabled resolver synthesizes an AAAA record using a configured NAT64 prefix, often \texttt{64:ff9b::/96}, but in the case of Viper an external NAT64 gateway was used.
@@ -160,7 +160,7 @@ DNS64 and NAT64 are required for accessing upstream OSG services, Git repositori
 
 
   
-\subsection*{CLAT for Application Compatibility}
+\subsection{CLAT for Application Compatibility}
 
 Some applications do not support IPv6,  including those that bind to literal,  or hardcoded IPv4 addresses. To address this limitation, Viper utilizes the following:
 
@@ -174,22 +174,35 @@ Note, in a dual-stack environment (e.g., while transitioning from legacy to IPv6
 
 Together, DNS64, NAT64, and CLAT allow IPv6-only nodes to maintain operational capability with legacy IP hosts and applications. 
 
-\section{Results}
+\section{Results and Discussion}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.49\linewidth]{Viper_OSPool_utilization.png}
+  \caption{Eight days of processing jobs for the OSPool.}
+  \label{fig:viper-jobs}
+\end{figure}
+
+
 \begin{itemize}
 \item Viper has been integrated successfully into the OSPool. 
-\item Despite signaling ENABLE\_IPV4 = false and PREF
+\item Despite signaling ENABLE\_IPV4 = false and PREFER\_IPv6 = true.
+\end{itemize}
+
+
+\begin{itemize}
+\item \color{red}{DISCUSS SITUATIONS THAT ARE PATHOLOGICAL OR PERNICIOUS}
 \end{itemize}
 
 \section{Conclusions}
+Demonstrates that a single-stack IPv6-only resource can interoperate with the broader research ecosystem, legacy IPv4-only hosts.
 
 
-
-\section*{Appendix: Site-Specific Notes}
+\section{Appendix: Site-Specific Notes}
 \subsection{Installing \texttt{CLATD}}
 Due to the stateless nature of Viper's execute images, installing \texttt{CLATD} into an image presents an issue. The \texttt{CLATD} installation procedure doesn't handle \texttt{TAYGA} installation correctly if it cannot start or run daemons, as is the case with modifying an image.  For installation on Viper,  the \texttt{CLATD} Makefile was modified and \texttt{TAYGA} installed separately.  Viper's minimal \texttt{CLATD} Makefile is,
 
-
-\begin{lstlisting}
+\begin{lstlisting}[caption={Minimal Makefile for CLATD Installation}, label={lst:clatd-makefile}]
 DESTDIR=
 PREFIX=/usr
 SYSCONFDIR=/etc
@@ -209,6 +222,7 @@ installdeps:
 	if test -x "$(DNF_OR_YUM)"; then $(DNF_OR_YUM) -y install perl perl-IPC-Cmd perl-Net-IP perl-Net-DNS perl-File-Temp perl-JSON iproute nftables; fi
 \end{lstlisting}
 
+
 \subsection{HTCondor Configuration}
 Issues may arise from using short hostnames derived from \texttt{/etc/hosts} which we avoided by using IPv6 literals for \texttt{CONDOR\_HOST}, \texttt{COLLECTOR\_HOST}, and \texttt{UID\_DOMAIN}.
 
@@ -226,6 +240,8 @@ Thain, D., Tannenbaum, T., and Livny, M. (2005). \textit{Distributed computing i
 \bibitem{ospool}
 Open Science Pool (OSPool). \url{https://osg-htc.org/services/open_science_pool.html}. Accessed June 2025.
 
+\bibitem{ospooldocs}
+Open Science Pool (OSPool) Documentation. \url{https://osg-htc.org/docs/}. Accessed June 2025.
 
 \bibitem{warewulf}
 Warewulf Project. \textit{Warewulf – Scalable Systems Management for HPC}. \url{https://warewulf.org}. Accessed June 2025.
@@ -254,6 +270,11 @@ Anderson, T., Byrne, C., and Bush, R. (2013). \textit{464XLAT: Combination of St
 \bibitem{clatd}
 Anderson, T. \textit{clatd – A 464XLAT CLAT implementation for Linux}. GitHub repository. \url{https://github.com/toreanderson/clatd}. Accessed June 2025.
 
+\bibitem{htcondor-ipv6}
+HTCondor Project. \emph{HTCondor IPv6 Support}. 
+Available at: \url{https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html#ipv6-support}. Accessed June 2025.
+
+
 \end{thebibliography}
 
 %The following procedures apply specifically to stateless nodes managed using Warewulf overlays. These are not essential for IPv6 deployment in general, but are critical for environments similar to Viper:
@@ -269,6 +290,5 @@ Anderson, T. \textit{clatd – A 464XLAT CLAT implementation for Linux}. GitHub 
 % Remaining sections to be added: NAT64, DNS64, CLAT, Monitoring challenges, Conclusions, etc.
 
 \end{document}
-
 
 
