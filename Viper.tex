@@ -59,9 +59,8 @@ Scratch Storage & 1 TB SSD \\
 \end{tabular}
 \end{center}
 There  are two master nodes serving as redundant central-managers in an active-passive relation, one
-submit node, and nine execute points. In the event that the submit node has a failure, an execute
-point may be transitioned to serve as a new submit node due the statelessness Viper’s management
-and provisioning system.
+submit node, and nine execute points. Because Viper uses Warewulf's stateless provisioning, nodes can be quickly repurposed or recovered after failure.
+
 Viper is configured to advertise 4.5 GB of RAM per core to the Open Science Pool, allowing it to efficiently integrate with workloads of varying shapes.  All Viper hosts have globally routable IPv6 addresses through CAAREN. 
 
 \section{About CAAREN}
@@ -96,6 +95,14 @@ These services position CAAREN as a leader for data-intensive science, advanced 
  \item \textbf{Firewalls:} Host-based firewall rules allowing limited IPv6 originating from both GW and OSG and unrestricted outbound. No other firewalls or access control lists.
 \end{itemize}
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.49\linewidth]{Viper_Network.jpeg}
+  \caption{Essential network architecture of the Viper IPv6-only implementation.}
+  \label{fig:viper-network}
+\end{figure}
+
+
 \section{HTCondor Configuration and IPv6 Deployment}
 
 All HTCondor components are configured to operate over IPv6 only. The following key values were set on each node via overlay.
@@ -123,9 +130,9 @@ UID_DOMAIN = 2001:db8:0:1::100
 CONDOR_HOST = 2001:db8:0:1::200
 
 NETWORK_INTERFACE = eno1
-ENABLE_IPV6 = TRUE
-PREFER_IPV6 = TRUE
-ENABLE_IPV4 = FALSE
+ENABLE_IPV6 = true
+PREFER_IPV6 = true
+ENABLE_IPV4 = false
 
 ALLOW_READ = 2001:db8:0:1::/64
 ALLOW_WRITE = 2001:db8:0:1::/64
@@ -147,7 +154,7 @@ DNS64 and NAT64 are required for accessing upstream OSG services, Git repositori
 \subsection*{DNS64 and NAT64}
 
 \begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
-  \item \textbf{DNS64:} When an IPv6-only host makes a DNS request for an A record (IPv4), a DNS64-enabled resolver synthesizes an AAAA record using a configured NAT64 prefix, often \texttt{64:ff9b::/96}, in the case of Viper the address block from our public NAT64 provider was used.
+  \item \textbf{DNS64:} When an IPv6-only host makes a DNS request for an A record (IPv4), a DNS64-enabled resolver synthesizes an AAAA record using a configured NAT64 prefix, often \texttt{64:ff9b::/96}, but in the case of Viper an external NAT64 gateway was used.
   \item \textbf{NAT64:} The NAT64 gateway intercepts IPv6 packets destined for these synthesized addresses and translates them to the corresponding IPv4 address, enabling IPv4 interoperability.
 \end{itemize}
 
@@ -155,10 +162,10 @@ DNS64 and NAT64 are required for accessing upstream OSG services, Git repositori
   
 \subsection*{CLAT for Application Compatibility}
 
-Some applications do not support IPv6,  including those that bind to literal,  or hardcoded IPv4 addresses. To address this limitation, Viper utilizes:
+Some applications do not support IPv6,  including those that bind to literal,  or hardcoded IPv4 addresses. To address this limitation, Viper utilizes the following:
 
 \begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
-  \item \textbf{CLAT (Customer-side Translator):} An open source implementation \cite{clatd} of 464XLAT~\cite{464xlat}, \texttt{CLATD} allows IPv4-only applications to operate in Viper's  IPv6-only environment.  \texttt{CLATD} orchestrates the translating of IPv4 socket calls into IPv6, which are then handled by Viper's PLAT, i.e., the public NAT64.
+  \item \textbf{CLAT (Customer-side Translator):} An open source implementation \cite{clatd} of 464XLAT~\cite{464xlat}, \texttt{CLATD} allows IPv4-only applications to operate in Viper's  IPv6-only environment.  \texttt{CLATD} orchestrates the translation of IPv4 socket calls into IPv6, which are then handled by Viper’s provider-side translator (PLAT)—the NAT64 gateway responsible for bridging to legacy IPv4 services.
   \item \textbf{Implementation:} On Viper, \texttt{CLATD} runs on each node and provides its own instance of \texttt{TAYGA}, an out-of-kernel stateless NAT64 daemon. \texttt{CLATD} (and \texttt{TAYGA}) are integrated at boot through systemd units within overlays. 
 \end{itemize}
 
@@ -205,7 +212,7 @@ installdeps:
 \subsection{HTCondor Configuration}
 Issues may arise from using short hostnames derived from \texttt{/etc/hosts} which we avoided by using IPv6 literals for \texttt{CONDOR\_HOST}, \texttt{COLLECTOR\_HOST}, and \texttt{UID\_DOMAIN}.
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
 \bibitem{gwu}
 The George Washington University. \textit{Research Technology Services – GW IT}. \url{https://it.gwu.edu/research-technology-services}. Accessed June 2025.
 
@@ -262,5 +269,6 @@ Anderson, T. \textit{clatd – A 464XLAT CLAT implementation for Linux}. GitHub 
 % Remaining sections to be added: NAT64, DNS64, CLAT, Monitoring challenges, Conclusions, etc.
 
 \end{document}
+
 
 
