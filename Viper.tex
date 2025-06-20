@@ -92,16 +92,50 @@ Additional CAAREN services include:
 These services position CAAREN as a leader for data-intensive science, advanced networking research, and the transition to secure, scalable IPv6-only architectures.
 
 \section{Network Architecture}
-\begin{itemize}[leftmargin=*,label=–,itemsep=1pt]
- \item \textbf{CAAREN Connectivity:} Global IPv6 /64 allocations routed through CAAREN. All Condor daemon communication (Collector, Negotiator, StartD, Schedd) operates exclusively over native IPv6.
- \item \textbf{Firewalls:} Host-based firewall rules allowing limited IPv6 originating from both GW and OSG and unrestricted outbound. No other firewalls or access control lists.
- \item All Viper hosts have globally routable IPv6 addresses through CAAREN. 
+
+Viper is integrated into the CAAREN research network using globally routable IPv6 addresses on all nodes. IPv6 is the sole transport protocol used for all HTCondor daemons and management tooling. Figure~\ref{fig:viper-network} illustrates the overall layout and connectivity of the Viper deployment.
+
+\subsection{IPv6 Addressing and Interface Layout}
+
+Each node has a statically assigned IPv6 address from a globally routable /64 prefix delegated to GWU by CAAREN. The interface layout is as follows:
+\begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
+    \item \textbf{Primary interface:} \texttt{eno1}, used for HTCondor daemon communication and OSPool job I/O
+    \item \textbf{Secondary interface:} \texttt{clat0}, a virtual interface created by CLATD to support legacy IPv4-only applications using 464XLAT translation
 \end{itemize}
+
+No IPv4 addresses are assigned to any interface on the system, and all name resolution, routing, and job submission are performed over IPv6.
+
+\subsection{Routing and Firewalling}
+
+Routing within Viper and upstream to the internet is handled via CAAREN’s core routers. Internally, the cluster uses host-based firewalls to limit inbound IPv6 traffic. The following constraints are enforced:
+\begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
+    \item Inbound traffic from specific OSG ranges is allowed for HTCondor job and daemon communication
+    \item Outbound traffic is unrestricted to allow for software installation, data transfer, and job staging
+    \item ICMPv6 and multicast traffic necessary for neighbor discovery are explicitly allowed
+\end{itemize}
+
+There are no intermediate firewalls or NAT devices on the local network path. All firewall rules are managed and deployed via the stateless overlay system to ensure consistency across nodes.
+
+\subsection{DNS64/NAT64 Infrastructure}
+
+To support outbound connections to IPv4-only resources (e.g., public repositories or APIs), the cluster relies on:
+\begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
+    \item \textbf{DNS64 resolvers:} Provided via systemd-resolved on the submit node and propagated to all compute nodes
+    \item \textbf{NAT64 gateway:} An external, stateless NAT64 service provided by CAAREN’s upstream connectivity 
+\end{itemize}
+
+This infrastructure allows IPv6-only nodes to resolve and connect to IPv4 services without needing dual-stack configurations. See Section~\ref{sec:dns-nat}.
+
+\subsection{464XLAT Translation Path}
+
+Each node runs a local instance of \texttt{clatd}, which invokes stateless NAT64 translation to handle IPv4-bound traffic. This includes glideins, containers, and research workflows that depend on IPv4. See Section~\ref{sec:clatd}.
+
+
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.49\linewidth]{Viper_Network.jpeg}
-  \caption{Essential network architecture of the Viper IPv6-only implementation.}
+  \caption{Network overview of the Viper IPv6-only implementation.}
   \label{fig:viper-network}
 \end{figure}
 
@@ -109,7 +143,7 @@ These services position CAAREN as a leader for data-intensive science, advanced 
 \section{HTCondor Configuration and IPv6 Deployment}
 Network configuration is thoroughly discussed in the HTCondor documentation~\cite{htcondor-ipv6}. All HTCondor components are configured to operate only over IPv6. The following key values were set on each node via overlay.
 
-\subsection*{Access Point and Central-Manager IPs}
+\subsection{Access Point and Central-Manager IPs}
 Note that the addresses below are reserved for documentation and used for illustrative purposes; they will need to be updated for site-specific networks.  
 \begin{center}
 \small
@@ -123,8 +157,8 @@ Submit/Access Point & \texttt{2001:db8:0:1::100} \\
 \end{tabular}
 \end{center}
 
-\subsection*{/etc/condor/config.d/10\_ipv6.conf}
-\begin{lstlisting}[caption={IPV6 Override Settings}, label={lst:ipv6-conf}]
+\subsection{/etc/condor/config.d/10\_ipv6.conf}
+\begin{lstlisting}[caption={IPv6 Override Settings}, label={lst:ipv6-conf}]
 # submit/access point
 UID_DOMAIN = 2001:db8:0:1::100
 
@@ -146,13 +180,13 @@ ALLOW_ADVERTISE_STARTD = 2001:db8:0:1::/64
 By default, HTCondor sets \texttt{BIND\_ALL\_INTERFACES = true}. In a multi-interface environment, each with network routes, it may be necessary to be more selective. As each execute point on Viper has two interfaces (one being the virtual \texttt{clat} interface), routing tables are used to sidestep this issue. All IPv6 traffic between Condor daemons is bound to the appropriate interface.  
 
 
-\section{DNS64, NAT64, and the Role of CLAT}
+\section{DNS64, NAT64, and 464XLAT}
 
 Viper operates in an IPv6-only environment so some measures are required to enable connectivity to legacy IPv4 hosts and applications. This is achieved through a combination of DNS64, NAT64, and CLAT, an implementation of 464XLAT~\cite{464xlat}.
 
 DNS64 and NAT64 are required for accessing upstream OSG services, Git repositories, and software mirrors that remain IPv4-only.
 \subsection{DNS64 and NAT64}
-
+\label{sec:dns-nat}
 \begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
   \item \textbf{DNS64:} When an IPv6-only host makes a DNS request for an A record (IPv4), a DNS64-enabled resolver synthesizes an AAAA record using a configured NAT64 prefix, often \texttt{64:ff9b::/96}, but in the case of Viper an external NAT64 gateway was used.
   \item \textbf{NAT64:} The NAT64 gateway intercepts IPv6 packets destined for these synthesized addresses and translates them to the corresponding IPv4 address, enabling IPv4 interoperability.
@@ -161,7 +195,7 @@ DNS64 and NAT64 are required for accessing upstream OSG services, Git repositori
 
   
 \subsection{CLAT for Application Compatibility}
-
+\label{sec:clatd}
 Some applications do not support IPv6,  including those that bind to literal,  or hardcoded IPv4 addresses. To address this limitation, Viper utilizes the following:
 
 \begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
@@ -185,7 +219,7 @@ Together, DNS64, NAT64, and CLAT allow IPv6-only nodes to maintain operational c
 
 
 \begin{itemize}
-\item Viper has been integrated successfully into the OSPool. 
+\item Viper has been integrated successfully into the OSPool. See Figure~\ref{fig:viper-jobs}. 
 \item Despite signaling ENABLE\_IPV4 = false and PREFER\_IPv6 = true.
 \end{itemize}
 
