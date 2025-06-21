@@ -43,7 +43,7 @@ planning for IPv6-only infrastructure while maintaining full interoperability wi
 
 The George Washington University~\cite{gwu}, in partnership with the Capital Area Advanced Research and Education Network (CAAREN)~\cite{caaren},  
 \href{https://ce-dashboard.ospool.osg-htc.org/overview.html?host=gwu-viper-ce1&r=week}{successfully} 
-contributed a single-stack IPv6 HTCondor~\cite{htcondor} cluster, Viper, to the Open Science Pool (OSPool)~\cite{ospool}, a nationally distributed computing platform for data-intensive research. This demonstrates a path forward for institutions preparing for an IPv6-only future, reinforcing GW’s leadership in research cyberinfrastructure and open science.
+contributed a single-stack IPv6 HTCondor~\cite{htcondor} cluster, Viper, to the Open Science Pool (OSPool)~\cite{ospool}, a nationally distributed computing platform for data-intensive research.~\cite{pordes2007,sfiligoi2009,osgospool,osgfs} This demonstrates a path forward for institutions preparing for an IPv6-only future, reinforcing GW’s leadership in research cyberinfrastructure and open science.
 
 There is some legitimate concern that integrating IPv6-only computational resources into the OSPool may have adverse effects on effective job throughput. These concerns break down into two broad categories of challenges, 
 \begin{enumerate}[itemsep=1pt]
@@ -314,6 +314,8 @@ installdeps:
 Issues may arise from using short hostnames derived from \texttt{/etc/hosts} which we avoided by using IPv6 literals for \texttt{CONDOR\_HOST}, \texttt{COLLECTOR\_HOST}, and \texttt{UID\_DOMAIN}.
 It is possible that conflicting (or at least confusing environmental variables may be set concurrently. HTCondor’s default settings (e.g., BIND\_ALL\_INTERFACES=true \& PREFER\_IPV4 = TRUE) should be adjusted for clarity in IPv6-only environments, even if they are overridden by other settings elsewhere.
 
+\section*{Acknowledgements}
+This research was done using services provided by the OSG Consortium [1,2,3,4], which is supported by the National Science Foundation awards \#2030508 and \#2323298.
 
 \begin{thebibliography}{99}
 \bibitem{gwu}
@@ -327,6 +329,18 @@ Thain, D., Tannenbaum, T., and Livny, M. (2005). \textit{Distributed computing i
 
 \bibitem{htcondor-ipv6}
 HTCondor Project. \textit{HTCondor IPv6 Support}. \url{https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html#ipv6-support}. Accessed June 2025.
+
+\bibitem{pordes2007}
+Pordes, R., Petravick, D., Kramer, B., Olson, D., Livny, M., Roy, A., Avery, P., Blackburn, K., Wenaus, T., Würthwein, F., Foster, I., Gardner, R., Wilde, M., Blatecky, A., McGee, J., \& Quick, R. (2007). \textit{The open science grid}. Journal of Physics: Conference Series, 78, 012057. \url{https://doi.org/10.1088/1742-6596/78/1/012057}
+
+\bibitem{sfiligoi2009}
+Sfiligoi, I., Bradley, D. C., Holzman, B., Mhashilkar, P., Padhi, S., \& Wurthwein, F. (2009). \textit{The pilot way to grid resources using glideinWMS}. In \textit{2009 WRI World Congress on Computer Science and Information Engineering}, Vol. 2, pp. 428–432. \url{https://doi.org/10.1109/CSIE.2009.950}
+
+\bibitem{osgospool}
+Open Science Grid (OSG). (2006). \textit{OSPool}. OSG. \url{https://doi.org/10.21231/906P-4D78}
+
+\bibitem{osgfs}
+Open Science Grid (OSG). (2015). \textit{Open Science Data Federation}. OSG. \url{https://doi.org/10.21231/0KVZ-VE57}
 
 \bibitem{ospool}
 Open Science Pool (OSPool). \url{https://osg-htc.org/services/open_science_pool.html}. Accessed June 2025.
