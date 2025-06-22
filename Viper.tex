@@ -127,7 +127,7 @@ Viper is integrated into the CAAREN research network using globally routable IPv
 Each node has a statically assigned IPv6 address from a globally routable /64 prefix delegated to GWU by CAAREN. The interface layout is as follows:
 \begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
     \item \textbf{Primary interface:} \texttt{eno1}, used for HTCondor daemon communication and OSPool job I/O
-    \item \textbf{Secondary interface:} \texttt{clat0}, a virtual interface created by CLATD to support legacy IPv4-only applications using 464XLAT translation
+    \item \textbf{Secondary interface:} \texttt{clat}, a virtual interface created by CLATD to support legacy IPv4-only applications using 464XLAT translation
 \end{itemize}
 
 No IPv4 addresses are assigned to any interface on the system other than 127.0.0.1 to \texttt{lo} (which was needed by other applications) and  192.0.0.1 to the virtual \texttt{clat} interface. All name resolution, routing, and job submission are performed over IPv6.
