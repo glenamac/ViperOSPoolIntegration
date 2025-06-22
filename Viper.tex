@@ -36,6 +36,8 @@ high-throughput computing resources to the OSPool without legacy IPv4 support. W
 with both OSPool and HTCondor in addition to heterogeneous user workloads, many of which assume IPv4 availability. By leveraging
 connection brokering (CCB), NAT64/CLAT translation, and robust IPv6 network services, this deployment serves as a model for institutions
 planning for IPv6-only infrastructure while maintaining full interoperability with national research computing platforms.
+
+
 \end{abstract}
 \tableofcontents
 
@@ -272,16 +274,12 @@ Although HTCondor supports IPv6-only operation, legacy components may still expe
 A common source of job failure in IPv6-only deployments is the inability to connect to IPv4-only resources (e.g., HTTP APIs, FTP servers, or license daemons). With Viper’s NAT64 setup, these services remain accessible without modifying the workload or upstream infrastructure. This compatibility is critical for enabling smooth transitions, especially for scientific software that has not yet adopted IPv6.
 
 
-\begin{itemize}
-\item \color{red}{DISCUSS SITUATIONS THAT ARE PATHOLOGICAL OR PERNICIOUS?}
-\end{itemize}
 
 \section{Conclusions}
+The George Washington University, in collaboration with the Capital Area Advanced Research and Education Network (CAAREN), has contributed Viper, a single-stack IPv6 HTCondor cluster, to the Open Science Pool, a platform supporting data-intensive research and coordinated by the Open Science Grid (OSG). This positions GW as a leader in adapting to an IPv6-only future. Although there are challenges associated with integrating IPv6-only resources into OSPool, these can be addressed through existing solutions.
 
+Viper, operating solely over IPv6, showcases efficient resource management using stateless provisioning and supports high throughput workflows. Viper integrates into CAAREN's IPv6 network, relying on DNS64, NAT64, and CLAT technologies to enable compatibility with legacy IPv4 systems without dual-stack complexity. This infrastructure provides functionality with IPv4-only services, ensuring research continuity during the transition to IPv6-only architectures. The setup leverages NAT64 and 464XLAT to enable backward compatibility while avoiding the burden on maintaining dual-stack networks. Challenges include addressing IPv4 legacy requirements in software but are manageable with the adopted solutions.
 
-As we move toward the future and contributors to organizations like the OSPool transition toward IPv6-only deployments, architectural challenges must be overcome to maintain interoperability with software, researcher workloads, and data sources that continue to rely on IPv4. Supporting dual-stack networks increases complexity and prolongs the dependence on a legacy protocol. To overcome this, The George Washington University has adopted DNS64/NAT64 and 464XLAT, a dual-translation approach that combines NAT64 and a client-side translator (CLAT) to bridge the gap between IPv6-only infrastructure and IPv4-dependent workflows.
-
-The Viper deployment demonstrates that a clean, IPv6-only architecture can coexist with legacy job demands by leveraging NAT64 and 464XLAT. This approach avoids the overhead of dual-stack networking while preserving backward compatibility, enabling high-throughput computing in IPv6-native environments.
 
 \section{Appendix: Site-Specific Notes}
 \subsection{Installing \texttt{CLATD}}
