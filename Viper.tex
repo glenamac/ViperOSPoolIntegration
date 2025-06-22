@@ -57,7 +57,7 @@ In this paper we discuss the process of configuring an IPv6-only compute resourc
 
 \section{Viper Overview}
 
-Viper is a 12-node HTCondor cluster managed with Warewulf 4.6.1~\cite{warewulf} running Rocky Linux 9.5 and supported by a dedicated network-attached ZFS pool for backups and administrative workflows.  Each node in the cluster is a Dell PowerEdge R730 with the following hardware specifications:
+Viper is a 12-node HTCondor cluster managed with Warewulf 4.6.1~\cite{warewulf} running Rocky Linux 9.5 and supported by a dedicated network-attached ZFS pool for backups and administrative workflows.  Each Viper node is a Dell PowerEdge R730 with the following hardware specifications:
 
 \begin{center}
 \small
@@ -134,7 +134,7 @@ No IPv4 addresses are assigned to any interface on the system, and all name reso
 
 \subsection{Routing and Firewalling}
 
-Routing within Viper and upstream to the internet is handled via CAAREN’s core routers. Internally, the cluster uses host-based firewalls to limit inbound IPv6 traffic. The following constraints are enforced:
+Routing within Viper and upstream to the internet is handled via CAAREN’s core routers. Internally, Viper uses host-based firewalls to limit inbound IPv6 traffic. The following constraints are enforced:
 \begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
     \item Inbound traffic from specific OSG ranges is allowed for HTCondor job and daemon communication
     \item Outbound traffic is unrestricted to allow for software installation, data transfer, and job staging
@@ -145,7 +145,7 @@ There are no intermediate firewalls or NAT devices on the local network path. Al
 
 \subsection{DNS64/NAT64 Infrastructure}
 
-To support outbound connections to IPv4-only resources (e.g., public repositories or APIs), the cluster relies on:
+To support outbound connections to IPv4-only resources (e.g., public repositories or APIs), Viper relies on:
 \begin{itemize}[leftmargin=*,label=--,itemsep=1pt]
     \item \textbf{DNS64 resolvers:} Provided via systemd-resolved on the submit node and propagated to all compute nodes
     \item \textbf{NAT64 gateway:} An external, stateless NAT64 service provided by CAAREN’s upstream connectivity 
