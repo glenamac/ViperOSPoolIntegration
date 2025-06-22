@@ -130,7 +130,7 @@ Each node has a statically assigned IPv6 address from a globally routable /64 pr
     \item \textbf{Secondary interface:} \texttt{clat0}, a virtual interface created by CLATD to support legacy IPv4-only applications using 464XLAT translation
 \end{itemize}
 
-No IPv4 addresses are assigned to any interface on the system, and all name resolution, routing, and job submission are performed over IPv6.
+No IPv4 addresses are assigned to any interface on the system other than 127.0.0.1 to \texttt{lo} (which was needed by other applications) and  192.0.0.1 to the virtual \texttt{clat} interface. All name resolution, routing, and job submission are performed over IPv6.
 
 \subsection{Routing and Firewalling}
 
@@ -273,7 +273,7 @@ A common source of job failure in IPv6-only deployments is the inability to conn
 
 
 \begin{itemize}
-\item \color{red}{DISCUSS SITUATIONS THAT ARE PATHOLOGICAL OR PERNICIOUS}
+\item \color{red}{DISCUSS SITUATIONS THAT ARE PATHOLOGICAL OR PERNICIOUS?}
 \end{itemize}
 
 \section{Conclusions}
