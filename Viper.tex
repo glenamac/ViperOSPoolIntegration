@@ -157,7 +157,7 @@ This infrastructure allows IPv6-only nodes to resolve and connect to IPv4 servic
 
 \subsection{464XLAT Translation Path}
 
-Each node runs a local instance of \texttt{clatd}, which invokes stateless NAT64 translation to handle IPv4-bound traffic. This includes glideins, containers, and researcher data that depend on IPv4. See Section~\ref{sec:clatd}.
+Each node runs a local instance of \texttt{clatd,464xlat}, which invokes stateless NAT64 translation to handle IPv4-bound traffic. This includes glideins, containers, and researcher data that depend on IPv4. See Section~\ref{sec:clatd}.
 
 
 
@@ -241,7 +241,7 @@ Together, DNS64, NAT64, and CLAT allow IPv6-only nodes to maintain operational c
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.74\linewidth]{Viper_OSPool_utilization.png}
+      \includegraphics[width=0.74\linewidth]{Viper_OSPool_utilization.png}
   \caption{PLACEHOLDER -- Eight days of processing jobs for the OSPool.}
   \label{fig:viper-jobs}
 \end{figure}
@@ -260,7 +260,7 @@ On Viper, each execute point runs a lightweight CLAT daemon, which provides IPv4
 
 \subsection{Role of the Condor Connection Broker (CCB)}
 
-In traditional IPv4 NAT or firewall-restricted environments, inbound connections to glideins are blocked, and HTCondor relies on the Condor Connection Broker (CCB) to reverse the communication flow; each glidein opens an outbound connection to a central CCB-enabled collector, which serves as a coordination point for job control and matchmaking.
+In traditional IPv4 NAT or firewall-restricted environments, inbound connections to glideins are blocked, and HTCondor relies on the Condor Connection Broker (CCB) to reverse the communication flow; each glidein opens an outbound connection to a central CCB-enabled collector, which serves as a coordination point for job control and matchmaking.~\cite{ccbdesign}
 
 Glideins deployed by OSPool appear to default to using CCB. In Viper’s case, however, the execute points have publicly routable IPv6 addresses so direct connections from the OSPool are allowed. As such, CCB is not the only viable communication path, but it remains the default for OSG glideins. As more sites with single-stack IPv6 are integrated into the OSPool, it may be worthwile to reconsider relaxing the glidein's CCB dependency.
 
@@ -326,6 +326,9 @@ Thain, D., Tannenbaum, T., and Livny, M. (2005). \textit{Distributed computing i
 \bibitem{htcondor-ipv6}
 HTCondor Project. \textit{HTCondor IPv6 Support}. \url{https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html#ipv6-support}. Accessed June 2025.
 
+\bibitem{ospool}
+Open Science Pool (OSPool). \url{https://osg-htc.org/services/open_science_pool.html}. Accessed June 2025.
+
 \bibitem{pordes2007}
 Pordes, R., Petravick, D., Kramer, B., Olson, D., Livny, M., Roy, A., Avery, P., Blackburn, K., Wenaus, T., Würthwein, F., Foster, I., Gardner, R., Wilde, M., Blatecky, A., McGee, J., \& Quick, R. (2007). \textit{The open science grid}. Journal of Physics: Conference Series, 78, 012057. \url{https://doi.org/10.1088/1742-6596/78/1/012057}
 
@@ -338,15 +341,12 @@ Open Science Grid (OSG). (2006). \textit{OSPool}. OSG. \url{https://doi.org/10.2
 \bibitem{osgfs}
 Open Science Grid (OSG). (2015). \textit{Open Science Data Federation}. OSG. \url{https://doi.org/10.21231/0KVZ-VE57}
 
-\bibitem{ospool}
-Open Science Pool (OSPool). \url{https://osg-htc.org/services/open_science_pool.html}. Accessed June 2025.
+
 
 
 \bibitem{ospooldocs}
 Open Science Pool (OSPool) Documentation. \url{https://osg-htc.org/docs/}. Accessed June 2025.
 
-\bibitem{ospoolutil}
-Open Science Pool (OSPool) Utilization. \url{https://osg-htc.org/services/ospool/projects.html}. Accessed June 2025.
 
 \bibitem{warewulf}
 Warewulf Project. \textit{Warewulf – Scalable Systems Management for HPC}. \url{https://warewulf.org}. Accessed June 2025.
@@ -357,8 +357,15 @@ Gallo, A., Bonica, R., and Aelmans, M. (2022). \textit{Production Deployment of 
 \bibitem{TreeDN}
 Giuliano, L., Lenart, C., and Adam, R. (2025). \textit{TreeDN: Tree-Based Content Delivery Network (CDN) for Live Streaming to Mass Audiences}. RFC 9706. \url{https://tools.ietf.org/html/rfc9706}
 
+\bibitem{ospoolutil}
+Open Science Pool (OSPool) Utilization. \url{https://osg-htc.org/services/ospool/projects.html}. Accessed June 2025.
+
+
 \bibitem{glideinwms}
 Fajardo, E. et al. \textit{glideinWMS: A Glidein-based Workload Management System for the Open Science Grid}. \url{https://glideinwms.fnal.gov/doc.prd/}. Accessed June 2025.
+
+\bibitem{ccbdesign}
+HTCondor Documentation. \textit{Connection Brokering}. \url{https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html#htcondor-connection-brokering-ccb}. Accessed June 2025.
 
 \bibitem{464xlat}
 Anderson, T., Byrne, C., and Bush, R. (2013). \textit{464XLAT: Combination of Stateful and Stateless Translation}. RFC 6877. \url{https://tools.ietf.org/html/rfc6877}
@@ -371,8 +378,6 @@ Anderson, T. \textit{clatd – A 464XLAT CLAT implementation for Linux}. GitHub 
 Open Science Grid. \textit{About OSG}. \url{https://github.com/opensciencegrid/osg-htc}. Accessed June 2025.
 
 
-\bibitem{ccbdesign}
-HTCondor Documentation. \textit{Connection Brokering}. \url{https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html#htcondor-connection-brokering-ccb}. Accessed June 2025.
 
 \end{thebibliography}
 
@@ -389,5 +394,4 @@ HTCondor Documentation. \textit{Connection Brokering}. \url{https://htcondor.rea
 % Remaining sections to be added: NAT64, DNS64, CLAT, Monitoring challenges, Conclusions, etc.
 
 \end{document}
-
 
