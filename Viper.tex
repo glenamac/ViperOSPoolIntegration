@@ -20,7 +20,7 @@
 }
 
 \title{IPv6-Only HTCondor Integration with the Open Science Pool: \\
-The Viper Cluster at GW/CAAREN}
+The Viper Cluster at CAAREN/GW}
 \author{Research Technology Services, GWIT\\
 The George Washington University}
 \date{\today}
@@ -30,12 +30,7 @@ The George Washington University}
 \maketitle
 
 \begin{abstract}
-In this paper we present the successful integration of a single-stack IPv6 HTCondor cluster into the Open Science Pool (OSPool) by The George Washington University in partnership with the Capital Area Advanced Research and Education Network (CAAREN). 
-Designed to operate entirely within an IPv6-only environment, this demonstrates the feasibility of contributing 
-high-throughput computing resources to the OSPool without legacy IPv4 support. We address key challenges in ensuring compatibility
-with both OSPool and HTCondor in addition to heterogeneous user workloads, many of which assume IPv4 availability. By leveraging
-connection brokering (CCB), NAT64/CLAT translation, and robust IPv6 network services, this deployment serves as a model for institutions
-planning for IPv6-only infrastructure while maintaining full interoperability with national research computing platforms.
+In this article we present the successful integration of a single-stack IPv6 HTCondor cluster into the Open Science Pool (OSPool) by the Capital Area Advanced Research and Education Network (CAAREN), the capital region Internet2 regional network operated by the George Washington University. Designed to operate entirely within an IPv6-only environment, this demonstrates the feasibility of contributing high-throughput computing resources to the OSPool without legacy IPv4 support. We address key challenges in ensuring compatibility with both OSPool and HTCondor in addition to heterogeneous user workloads, many of which assume IPv4 availability. By leveraging connection brokering (CCB), NAT64/CLAT translation, and robust IPv6 network services, this deployment serves as a model for institutions planning for IPv6-only infrastructure while maintaining full interoperability with national research computing platforms.
 
 
 \end{abstract}
@@ -55,7 +50,7 @@ There is some legitimate concern that integrating IPv6-only computational resour
 
 A solution is required that bridges the gap for both of these sets of concerns for there to be any possibility of moving beyond legacy addressing. Because the way the OSPool CE's match requests with resources is well-understood~\cite{ospooldocs}, the first set of challenges may be addressed systematically. However, the second set, owing to researcher workflows being much less predictable, requires a broadly-scoped solution that handles a variety of scenarios. 
 
-In this paper we discuss the process of configuring an IPv6-only compute resource for integration into the OSPool.
+In this article we discuss the process of configuring an IPv6-only compute resource for integration into the OSPool.
 
 \section{Viper Overview}
 
@@ -394,4 +389,5 @@ Open Science Grid. \textit{About OSG}. \url{https://github.com/opensciencegrid/o
 % Remaining sections to be added: NAT64, DNS64, CLAT, Monitoring challenges, Conclusions, etc.
 
 \end{document}
+
 
